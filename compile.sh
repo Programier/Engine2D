@@ -1,0 +1,1 @@
+g++ -lglfw -lpng -lGL -lGLEW *.cpp -o out
