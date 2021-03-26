@@ -1,3 +1,10 @@
+/*
+ * Window.cpp
+ *
+ *  Created on: 26 мар. 2021 г.
+ *      Author: programier
+ */
+
 #ifndef WINDOW_HPP
 #define WINDOW_HPP
 
@@ -6,8 +13,8 @@ class GLFWwindow;
 
 namespace Window
 {
-    static GLFWwindow *window;
-    static int width, height;
+    extern GLFWwindow *window;
+    extern int width, height;
     int init(int window_width, int window_height,
              const char *windowname, bool rezisable);
     void terminate();

@@ -1,15 +1,26 @@
+/*
+ * Window.cpp
+ *
+ *  Created on: 26 мар. 2021 г.
+ *      Author: programier
+ */
+
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "Window.hpp"
 
-bool inited = false;
+
+static bool inited = false;
+GLFWwindow *Window::window;
+int Window::width, Window::height;
+
 
 int Window::init(int window_width, int window_height,
                  const char *windowname, bool rezisable)
 {
-    Window::width = window_width;
-    Window::height = window_height;
+    width = window_width;
+    height = window_height;
     glfwInit();
     std::cout << "Start to set glfw" << std::endl;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -27,15 +38,17 @@ int Window::init(int window_width, int window_height,
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
     {
-        std::cerr << "Filed to initialize new window\n";
+        std::cerr << "Fаiled to initialize new window\n";
         return -1;
     }
 
     glViewport(0, 0, width, height);
     std::cout << "The window was created successfully" << std::endl;
     inited = true;
-    return 0;
+    return 0; 
+    
 }
+
 
 void Window::terminate() {
 	std::cout << "Terminated window" << std::endl;
@@ -48,13 +61,13 @@ void Window::swapBuffers() {
 }
 
 bool Window::isOpen() {
-	glfwGetWindowSize(Window::window, &Window::width, &Window::height);
-	glViewport(0, 0, Window::width, Window::height);
-	return !glfwWindowShouldClose(Window::window);
+	glfwGetWindowSize(window, &width, &height);
+	glViewport(0, 0, width, height);
+	return !glfwWindowShouldClose(window);
 }
 void Window::setShouldClose(bool flag) {
 	std::cout << "Closing Window" << std::endl;
-	glfwSetWindowShouldClose(Window::window, flag);
+	glfwSetWindowShouldClose(window, flag);
 	inited = false;
 }
 

@@ -3,8 +3,12 @@
 
 int main(){
     Window::init(1280, 720, "Test", false);
-    while(Window::isOpen()){
+    Event::init();
+    while (Window::isOpen())
+    {
+        Event::pollEvents();
         Window::swapBuffers();
     }
     Window::terminate();
+    Event::terminate();
 }
