@@ -1,5 +1,5 @@
 /*
- * Texture_renderer.hpp
+ * Texture_Renderer.hpp
  *
  *  Created on: 27 мар. 2021 г.
  *      Author: programier

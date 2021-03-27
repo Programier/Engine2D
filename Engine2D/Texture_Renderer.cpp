@@ -1,9 +1,10 @@
 /*
- * texture_renderer.cpp
+ * Texture_Renderer.cpp
  *
- *  Created on: 8 мар. 2021 г.
+ *  Created on: 27 мар. 2021 г.
  *      Author: programier
  */
+
 #include <GL/glew.h>
 #include "Texture_Renderer.hpp"
 #include "Shader.hpp"
