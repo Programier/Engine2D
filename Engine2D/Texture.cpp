@@ -30,16 +30,17 @@ typedef struct _TexturePrivateData
 	};
 	struct Dot dot_1, dot_2, dot_3, dot_4;
 	std::string pathToFile;
-	bool inited;
+	bool inited, inherit;
 	int initial_width, initial_height;
 } PrivateField;
 
-PrivateField* writePrivateData(std::string filePath, bool inited, int width, int heigth){
+PrivateField* writePrivateData(std::string filePath, bool inited, int width, int heigth, bool inherit = false){
 	PrivateField *data = new PrivateField();
 	data->inited = inited;
 	data->pathToFile = filePath;
 	data->initial_height = heigth;
 	data->initial_width = width;
+	data->inherit = inherit;
 	return data;
 }
 
@@ -99,11 +100,14 @@ void Swap(float &a, float &b){
 }
 
 void deleteTexture(struct _Texture& texture){
-	std::cout << "Start deleting texture" << std::endl;
-	glDeleteTextures(1, &texture.id);
-	delete texture.privateData;
-	if(texture.privateData != nullptr)
-		texture.privateData = nullptr;
+	if(!texture.privateData->inherit){
+		std::cout << "Start deleting texture" << std::endl;
+		glDeleteTextures(1, &texture.id);
+		delete texture.privateData;
+		if(texture.privateData != nullptr)
+			texture.privateData = nullptr;
+	}else
+		std::cerr << "Can't delete inherited texture. Permission denied!" << std::endl;
 }
 
 void invertVertically(struct _Texture& texture) {
@@ -256,4 +260,14 @@ void toDefault(struct _Texture& texture){
 	setVectices(texture.vertices);
 	texture.width = getInitialWidth(texture);
 	texture.height = getInitialHeight(texture);
+}
+
+void inheritTexture(Texture &inherit_from, Texture &to){
+	to.id = inherit_from.id;
+	to.width = inherit_from.width;
+	to.height = inherit_from.height;
+	std::copy(inherit_from.vertices, inherit_from.vertices + 30, to.vertices);
+	if (to.privateData != nullptr)
+		delete to.privateData;
+	to.privateData = writePrivateData(inherit_from.privateData->pathToFile, true, getInitialWidth(inherit_from), getInitialHeight(inherit_from), true);
 }

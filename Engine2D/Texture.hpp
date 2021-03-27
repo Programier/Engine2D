@@ -33,4 +33,5 @@ void invertVertically(Texture &texture);
 void invertHorizontally(Texture &texture);
 void deleteTexture(Texture &texture);
 void toDefault(Texture &texture);
+void inheritTexture(Texture &inherit_from, Texture &to);
 #endif /* TEXTURE_HPP */
