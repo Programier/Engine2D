@@ -3,24 +3,28 @@
 
 int main()
 {
-    Window::init(1280, 720, "Test", false);
+    Window::init(1280, 720, "Test", true);
     Event::init();
     Texture_Renderer::init();
+    Speaker::init();
+    Music test;
+    loadWAV("test.wav", test);
     Texture texture;
     loadTexture("test.png", texture);
     while (Window::isOpen())
     {
         Window::clearBuffer();
         Event::pollEvents();
-        if(Event::jpressed(GLFW_KEY_H))
+        if (Event::jpressed(GLFW_KEY_H))
             invertHorizontally(texture);
-        if(Event::jpressed(GLFW_KEY_V))
+        if (Event::jpressed(GLFW_KEY_V))
             invertVertically(texture);
         if (Event::jpressed(GLFW_KEY_D))
         {
             toDefault(texture);
         }
-        if(Event::jpressed(GLFW_KEY_E)){
+        if (Event::jpressed(GLFW_KEY_E))
+        {
             system("clear");
             std::cout << "Окей, текущие размеры текстуры: " << texture.width << "\t" << texture.height << std::endl;
             int x, y, width, heigth;
@@ -34,11 +38,24 @@ int main()
             std::cin >> heigth;
             setPart(texture, x, y, width, heigth);
         }
-        draw(texture);
+
+        if (Event::jpressed(GLFW_KEY_P))
+            Speaker::play(test);
+        if (Event::jpressed(GLFW_KEY_S))
+            Speaker::stop(test);
+        if (Event::pressed(GLFW_KEY_G))
+            std::cout << "AUDIO PLAYING: " << Speaker::isPlaying(test) << std::endl;
+        if(Event::jpressed(GLFW_KEY_A)){
+            Speaker::clearStack();
+        }
+
+        fullScreenDraw(texture);
         Window::swapBuffers();
     }
     Window::terminate();
     Event::terminate();
     Texture_Renderer::terminate();
+    Speaker::terminate();
     deleteTexture(texture);
+    deleteMusic(test);
 }

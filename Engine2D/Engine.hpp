@@ -6,5 +6,6 @@
 #include "Texture_Renderer.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
+#include "Music.hpp"
 
 #endif 
