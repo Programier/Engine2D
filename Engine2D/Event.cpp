@@ -29,11 +29,11 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
 
 int Event::init()
 {
-    std::cout << "Starting init Event System" << std::endl;
+    std::cout << "EVENT: Starting init Event System" << std::endl;
     memset(Event::_keys, false, 1024 * sizeof(bool));
     memset(Event::_frames, 0, 1024 * sizeof(unsigned int));
     glfwSetKeyCallback(Window::window, key_callback);
-    std::cout << "Event System successfully initialized" << std::endl;
+    std::cout << "EVENT: Event System successfully initialized" << std::endl;
     inited = true;
     return 0;
 }

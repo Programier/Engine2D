@@ -47,7 +47,7 @@ PrivateField* writePrivateData(std::string filePath, bool inited, int width, int
 static void rewrite_vertices(struct _Texture &texture,  int x, int y, int width, int height, bool add,
 		bool inversed) {
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	y = -1 * (Window::height - height - y);
@@ -101,18 +101,18 @@ void Swap(float &a, float &b){
 
 void deleteTexture(struct _Texture& texture){
 	if(!texture.privateData->inherit){
-		std::cout << "Start deleting texture" << std::endl;
+		std::cout << "TEXTURE: Start deleting texture" << std::endl;
 		glDeleteTextures(1, &texture.id);
 		delete texture.privateData;
 		if(texture.privateData != nullptr)
 			texture.privateData = nullptr;
 	}else
-		std::cerr << "Can't delete inherited texture. Permission denied!" << std::endl;
+		std::cerr << "TEXTURE: Can't delete inherited texture. Permission denied!" << std::endl;
 }
 
 void invertVertically(struct _Texture& texture) {
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	setPart(texture, texture.width, 0, -1 * texture.width, texture.height);
@@ -120,7 +120,7 @@ void invertVertically(struct _Texture& texture) {
 
 void invertHorizontally(struct _Texture& texture){
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	setPart(texture, 0, texture.height, texture.width, -1 * texture.height);
@@ -128,7 +128,7 @@ void invertHorizontally(struct _Texture& texture){
 
 void draw(struct _Texture& texture, int x, int y, int width, int height, bool inversed) {
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	if(width == 0) width = texture.width;
@@ -144,11 +144,11 @@ void draw(struct _Texture& texture, int x, int y, int width, int height, bool in
 
 void fullScreenDraw(struct _Texture& texture){
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	if(!Texture_Renderer::isInited()){
-		std::cerr << "Please, initialize the Texture Renderer system first before drowing the texture" << std::endl;
+		std::cerr << "TEXTURE: Please, initialize the Texture Renderer system first before drowing the texture" << std::endl;
 		return;
 	}
 	glBufferData(GL_ARRAY_BUFFER, 30 * sizeof(float), texture.vertices,
@@ -163,7 +163,7 @@ void fullScreenDraw(struct _Texture& texture){
 void setPart(struct _Texture& texture, int x,  int y,  int _width,
 		 int _height) {
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 		// Check inverting
@@ -188,7 +188,7 @@ void setPart(struct _Texture& texture, int x,  int y,  int _width,
 	begin_x = x + _width, begin_y = y + _height;
 	if (static_cast<int>(begin_x) > getInitialWidth(texture) || begin_x < 0.f || static_cast<int>(begin_y) > getInitialWidth(texture) || begin_y < 0.f)
 	{
-		std::cerr << "Failed to resize a texture" << std::endl;
+		std::cerr << "TEXTURE: Failed to resize a texture" << std::endl;
 		return;
 	}
 	toDefault(texture);
@@ -226,7 +226,7 @@ static void setVectices(float* vertices){
 
 int getInitialHeight(struct _Texture& texture) {
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return -1;
 	}
 		return texture.privateData->initial_height;
@@ -234,7 +234,7 @@ int getInitialHeight(struct _Texture& texture) {
 
 int getInitialWidth(struct _Texture& texture) {
 	if(texture.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return -1;
 	}
 	return texture.privateData->initial_width;
@@ -242,7 +242,7 @@ int getInitialWidth(struct _Texture& texture) {
 
 void copyTexture(Texture &copy_from, Texture &copy_to){
 	if(copy_from.privateData == nullptr){
-		std::cerr << "Texture has been deleted or not initialized" << std::endl;
+		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	loadTexture(copy_from.privateData->pathToFile, copy_to);
@@ -252,7 +252,7 @@ void loadTexture(std::string textureFile, struct _Texture& texture){
 	setVectices(texture.vertices);
 	texture.id = _png_load(textureFile.c_str(), &texture.width, &texture.height);
 	if(texture.id == 0)
-		std::cerr << "Failed to load texture " << textureFile << std::endl;
+		std::cerr << "TEXTURE: Failed to load texture " << textureFile << std::endl;
 	texture.privateData = writePrivateData(textureFile, true, texture.width, texture.height);
 }
 

@@ -1,61 +1,33 @@
-#include <iostream>
 #include "Engine2D/Engine.hpp"
+#define GROUND_SPEED 7
+std::string programmPath;
+int background_x = 0;
 
-int main()
+
+int main(int argc, char **argv)
 {
-    Window::init(1280, 720, "Test", true);
+    programmPath = argv[0];
+    while(programmPath[programmPath.length() - 1] != '/')
+        programmPath.erase(programmPath.end() - 1);
+    std::cout << programmPath << std::endl;
+    Window::init(1280, 720, "FlappyBird", false);
     Event::init();
     Texture_Renderer::init();
-    Speaker::init();
-    Music test;
-    loadWAV("test.wav", test);
-    Texture texture;
-    loadTexture("test.png", texture);
+    Texture background;
+    loadTexture(programmPath + "images/Background.png", background);
     while (Window::isOpen())
     {
-        Window::clearBuffer();
         Event::pollEvents();
-        if (Event::jpressed(GLFW_KEY_H))
-            invertHorizontally(texture);
-        if (Event::jpressed(GLFW_KEY_V))
-            invertVertically(texture);
-        if (Event::jpressed(GLFW_KEY_D))
-        {
-            toDefault(texture);
-        }
-        if (Event::jpressed(GLFW_KEY_E))
-        {
-            system("clear");
-            std::cout << "Окей, текущие размеры текстуры: " << texture.width << "\t" << texture.height << std::endl;
-            int x, y, width, heigth;
-            std::cout << "Введите Х: ";
-            std::cin >> x;
-            std::cout << "Введите Y: ";
-            std::cin >> y;
-            std::cout << "Введите ширину: ";
-            std::cin >> width;
-            std::cout << "Введите высоту: ";
-            std::cin >> heigth;
-            setPart(texture, x, y, width, heigth);
-        }
-
-        if (Event::jpressed(GLFW_KEY_P))
-            Speaker::play(test);
-        if (Event::jpressed(GLFW_KEY_S))
-            Speaker::stop(test);
-        if (Event::pressed(GLFW_KEY_G))
-            std::cout << "AUDIO PLAYING: " << Speaker::isPlaying(test) << std::endl;
-        if(Event::jpressed(GLFW_KEY_A)){
-            Speaker::clearStack();
-        }
-
-        fullScreenDraw(texture);
+        Window::clearBuffer();
+        draw(background, background_x, 0, 1280, 720);
+        draw(background, background_x + 1280, 0, 1280, 720);
+        background_x -= GROUND_SPEED;
+        if (background_x <= -1280)
+            background_x = 0;
         Window::swapBuffers();
     }
     Window::terminate();
     Event::terminate();
     Texture_Renderer::terminate();
-    Speaker::terminate();
-    deleteTexture(texture);
-    deleteMusic(test);
+    deleteTexture(background);
 }

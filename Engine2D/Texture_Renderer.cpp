@@ -16,7 +16,7 @@ GLuint Texture_Renderer::VAO, Texture_Renderer::VBO;
 
 int Texture_Renderer::init() {
 	if (Shader::init() == -1) {
-		std::cerr << "Failed to load shader" << std::endl;
+		std::cerr << "TEXTURE RENDERER: Failed to load shader" << std::endl;
 		return -1;
 	}
 
@@ -39,13 +39,13 @@ int Texture_Renderer::init() {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	std::cout << "Texture Renderer System successfully initialized" << std::endl;
+	std::cout << "TEXTURE RENDERER: Texture Renderer System successfully initialized" << std::endl;
 	inited = true;
 	return 0;
 }
 
 void Texture_Renderer::terminate() {
-	std::cout << "Delete buffers and Vertex Array in Texture Renderer System" << std::endl;
+	std::cout << "TEXTURE RENDERER: Delete buffers and Vertex Array in Texture Renderer System" << std::endl;
 	glDeleteBuffers(1, &Texture_Renderer::VBO);
 	glDeleteVertexArrays(1, &Texture_Renderer::VAO);
 	inited = false;
