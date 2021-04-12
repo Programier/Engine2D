@@ -45,7 +45,7 @@ PrivateField* writePrivateData(std::string filePath, bool inited, int width, int
 }
 
 static void rewrite_vertices(struct _Texture &texture,  int x, int y, int width, int height, bool add,
-		bool inversed) {
+		Inversion invetion_status) {
 	if(texture.privateData == nullptr){
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
@@ -75,8 +75,17 @@ static void rewrite_vertices(struct _Texture &texture,  int x, int y, int width,
 		texture.privateData->dot_4.x = 1;
 		texture.privateData->dot_4.y = -1;
 	}
-	if (inversed)
-		invertVertically(texture);
+	if(invetion_status != NONE)
+	{
+		switch(invetion_status){
+			case HORIZONTAL:
+				invertHorizontally(texture);
+				break;
+			case VERTICAL:
+				invertVertically(texture);
+				break;
+			}
+	}
 
 	texture.vertices[10] = texture.privateData->dot_1.x;
 	texture.vertices[11] = texture.privateData->dot_1.y;
@@ -126,20 +135,20 @@ void invertHorizontally(struct _Texture& texture){
 	setPart(texture, 0, texture.height, texture.width, -1 * texture.height);
 }
 
-void draw(struct _Texture& texture, int x, int y, int width, int height, bool inversed) {
+void draw(struct _Texture& texture, int x, int y, int width, int height, Inversion invetion_status) {
 	if(texture.privateData == nullptr){
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	if(width == 0) width = texture.width;
 	if(height == 0) height = texture.height;
-	rewrite_vertices(texture, x, y, width, height, true, inversed);
+	rewrite_vertices(texture, x, y, width, height, true, invetion_status);
 
 	/*We have changed the rendering parameters, so the drawing function will temporarily draw according to the specified parameters*/
 
 	fullScreenDraw(texture);
 	glBindVertexArray(0);
-	rewrite_vertices(texture, x, y, width, height, false, inversed);
+	rewrite_vertices(texture, x, y, width, height, false, invetion_status);
 }
 
 void fullScreenDraw(struct _Texture& texture){
@@ -186,7 +195,7 @@ void setPart(struct _Texture& texture, int x,  int y,  int _width,
 		y += static_cast<int>(begin_y * getInitialHeight(texture));
 	}
 	begin_x = x + _width, begin_y = y + _height;
-	if (static_cast<int>(begin_x) > getInitialWidth(texture) || begin_x < 0.f || static_cast<int>(begin_y) > getInitialWidth(texture) || begin_y < 0.f)
+	if (static_cast<int>(begin_x) > getInitialWidth(texture) || begin_x < 0.f || static_cast<int>(begin_y) > getInitialHeight(texture) || begin_y < 0.f)
 	{
 		std::cerr << "TEXTURE: Failed to resize a texture" << std::endl;
 		return;

@@ -11,6 +11,13 @@
 #include <string>
 #include "Texture_Loader.hpp"
 
+enum Inversion
+{
+	NONE,
+	HORIZONTAL,
+	VERTICAL
+};
+
 typedef struct _Texture
 {
 	struct _TexturePrivateData *privateData = nullptr;
@@ -24,7 +31,7 @@ typedef struct _Texture
 
 void loadTexture(std::string textureFile, Texture &texture);
 void setPart(Texture &texture, int x, int y, int width, int heigth);
-void draw(Texture &texture, int x = 0, int y = 0, int width = 0, int height = 0, bool inversed = false);
+void draw(Texture &texture, int x = 0, int y = 0, int width = 0, int height = 0, Inversion invetion_status = NONE);
 void fullScreenDraw(Texture &texture);
 int getInitialWidth(Texture &texture);
 int getInitialHeight(Texture &texture);
