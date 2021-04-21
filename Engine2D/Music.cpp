@@ -26,7 +26,6 @@ static bool inited = false;
 
 static void updateStack()
 {
-    std::cout << "AUDIO: Start updating audio stack data" << std::endl;
     for (int i = 0; i < stack.size(); i++)
     {
         if (!Speaker::isPlaying(stack[i]))
@@ -81,7 +80,6 @@ void Speaker::init()
 
 void Speaker::play(Music &music)
 {
-    std::cout << "SPEAKER: Start playing the file \"" << music.privateField->path << "\"" << std::endl;
     if (!Speaker::isPlaying(music))
     {
         alSourcePlay(music.privateField->source);
@@ -104,7 +102,6 @@ void Speaker::play(Music &music)
 
 void Speaker::stop(Music &music)
 {
-    std::cout << "Stop playing an audio file \"" << music.privateField->path << "\"" << std::endl;
     alSourceStop(music.privateField->source);
     alGetSourcei(music.privateField->source, AL_SOURCE_STATE, &music.privateField->source_tmp);
 }
