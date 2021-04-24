@@ -12,29 +12,28 @@
 #include <algorithm>
 #include <cmath>
 #include "Window.hpp"
+#include <vector>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
-float tmp[] = {
-			// x    y     z     u     v
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f, };
+const float _vertices[] = {
+	// x    y     z     u     v
+	-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+	1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+	-1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	-1.0f, 1.0f, 0.0f, 0.0f, 1.0f};
 
 typedef struct _TexturePrivateData
 {
-	struct Dot{
-		float x = 0, y = 0;
-	};
-	struct Dot dot_1, dot_2, dot_3, dot_4;
 	std::string pathToFile;
 	bool inited, inherit;
 	int initial_width, initial_height;
 } PrivateField;
 
-PrivateField* writePrivateData(std::string filePath, bool inited, int width, int heigth, bool inherit = false){
+PrivateField *writePrivateData(std::string filePath, bool inited, int width, int heigth, bool inherit = false)
+{
 	PrivateField *data = new PrivateField();
 	data->inited = inited;
 	data->pathToFile = filePath;
@@ -44,154 +43,133 @@ PrivateField* writePrivateData(std::string filePath, bool inited, int width, int
 	return data;
 }
 
-static void rewrite_vertices(struct _Texture &texture,  int x, int y, int width, int height, bool add,
-		Inversion invetion_status) {
-	if(texture.privateData == nullptr){
-		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
-		return;
-	}
-	y = -1 * (Window::height - height - y);
-	float x_diff = ((1.0 * x) / (Window::width/2));
-	float y_diff = ((1.0 * y) / (Window::height/2));
-	float width_diff = (1.0 * width) / (Window::width / 2);
-	float height_diff = (1.0 * height) / (Window::height / 2);
-
-	if (add) {
-		texture.privateData->dot_1.x = -1 + x_diff;
-		texture.privateData->dot_1.y = 1 + y_diff;
-		texture.privateData->dot_2.x = texture.privateData->dot_1.x + width_diff;
-		texture.privateData->dot_2.y = texture.privateData->dot_1.y;
-		texture.privateData->dot_3.x = texture.privateData->dot_1.x;
-		texture.privateData->dot_3.y = texture.privateData->dot_1.y - height_diff;
-		texture.privateData->dot_4.x = texture.privateData->dot_1.x + width_diff;
-		texture.privateData->dot_4.y = texture.privateData->dot_1.y - height_diff;
-	} else {
-		texture.privateData->dot_1.x = -1;
-		texture.privateData->dot_1.y = 1;
-		texture.privateData->dot_2.x = 1;
-		texture.privateData->dot_2.y = 1;
-		texture.privateData->dot_3.x = -1;
-		texture.privateData->dot_3.y = -1;
-		texture.privateData->dot_4.x = 1;
-		texture.privateData->dot_4.y = -1;
-	}
-	if(invetion_status != NONE)
+void deleteTexture(struct _Texture &texture)
+{
+	if (!texture.privateData->inherit)
 	{
-		switch(invetion_status){
-			case HORIZONTAL:
-				invertHorizontally(texture);
-				break;
-			case VERTICAL:
-				invertVertically(texture);
-				break;
-			}
-	}
-
-	texture.vertices[10] = texture.privateData->dot_1.x;
-	texture.vertices[11] = texture.privateData->dot_1.y;
-	texture.vertices[25] = texture.privateData->dot_1.x;
-	texture.vertices[26] = texture.privateData->dot_1.y;
-	texture.vertices[20] = texture.privateData->dot_2.x;
-	texture.vertices[21] = texture.privateData->dot_2.y;
-	texture.vertices[0] = texture.privateData->dot_3.x;
-	texture.vertices[1] = texture.privateData->dot_3.y;
-	texture.vertices[5] = texture.privateData->dot_4.x;
-	texture.vertices[6] = texture.privateData->dot_4.y;
-	texture.vertices[15] = texture.privateData->dot_4.x;
-	texture.vertices[16] = texture.privateData->dot_4.y;
-
-}
-
-void Swap(float &a, float &b){
-	float tmp = a;
-	a = b;
-	b = tmp;
-}
-
-void deleteTexture(struct _Texture& texture){
-	if(!texture.privateData->inherit){
 		std::cout << "TEXTURE: Start deleting texture" << std::endl;
 		glDeleteTextures(1, &texture.id);
 		delete texture.privateData;
-		if(texture.privateData != nullptr)
+		if (texture.privateData != nullptr)
 			texture.privateData = nullptr;
-	}else
+	}
+	else
 		std::cerr << "TEXTURE: Can't delete inherited texture. Permission denied!" << std::endl;
 }
 
-void invertVertically(struct _Texture& texture) {
-	if(texture.privateData == nullptr){
+void invertVertically(struct _Texture &texture)
+{
+	if (texture.privateData == nullptr)
+	{
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	setPart(texture, texture.width, 0, -1 * texture.width, texture.height);
 }
 
-void invertHorizontally(struct _Texture& texture){
-	if(texture.privateData == nullptr){
+void invertHorizontally(struct _Texture &texture)
+{
+	if (texture.privateData == nullptr)
+	{
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	setPart(texture, 0, texture.height, texture.width, -1 * texture.height);
 }
 
-void draw(struct _Texture& texture, int x, int y, int width, int height, Inversion invetion_status) {
-	if(texture.privateData == nullptr){
+void draw(struct _Texture &texture, int x, int y, float angle, std::size_t width, std::size_t height, Inversion invetion_status)
+{
+
+	if (texture.privateData == nullptr)
+	{
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
-	if(width == 0) width = texture.width;
-	if(height == 0) height = texture.height;
-	rewrite_vertices(texture, x, y, width, height, true, invetion_status);
 
-	/*We have changed the rendering parameters, so the drawing function will temporarily draw according to the specified parameters*/
-
-	fullScreenDraw(texture);
-	glBindVertexArray(0);
-	rewrite_vertices(texture, x, y, width, height, false, invetion_status);
-}
-
-void fullScreenDraw(struct _Texture& texture){
-	if(texture.privateData == nullptr){
-		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
-		return;
-	}
-	if(!Texture_Renderer::isInited()){
+	if (!Texture_Renderer::isInited())
+	{
 		std::cerr << "TEXTURE: Please, initialize the Texture Renderer system first before drowing the texture" << std::endl;
 		return;
 	}
+
+	// Inverting the texture
+	if (invetion_status != NONE)
+	{
+		switch (invetion_status)
+		{
+		case HORIZONTAL:
+			invertHorizontally(texture);
+			break;
+		case VERTICAL:
+			invertVertically(texture);
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	// Angle reduction
+	angle = fmod(angle, 360);
+	if (angle < 0)
+		angle += 360;
+
+	if (width == 0)
+		width = texture.width;
+
+	if (height == 0)
+		height = texture.height;
+
+	// Setting vertices for drawing
 	glBufferData(GL_ARRAY_BUFFER, 30 * sizeof(float), texture.vertices,
-	GL_STATIC_DRAW);
+				 GL_STATIC_DRAW);
+
 	Shader::use();
+	// Calculating Texture Parameters
+	float tmp = std::sqrt(static_cast<float>((width * width / 4.0) + (height * height / 4.0))) - (static_cast<float>(width) / 2);
+	float _width = static_cast<float>(width) / (width + 2 * tmp);
+	float _height = static_cast<float>(height) / (width + 2 * tmp);
+
+	// Texture rendering
+	glViewport(x - tmp, y - (tmp + (static_cast<float>(width) / 2) - (static_cast<float>(height) / 2)), width + tmp + tmp, width + tmp + tmp);
+	glm::mat4 matrix = glm::scale(glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)), glm::radians(angle), glm::vec3(0, 0, 1)), glm::vec3(_width, _height, 0));
+	Shader::useMatrix("matrix", matrix);
 	glBindTexture(GL_TEXTURE_2D, texture.id);
 	glBindVertexArray(Texture_Renderer::VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
 }
 
-void setPart(struct _Texture& texture, int x,  int y,  int _width,
-		 int _height) {
-	if(texture.privateData == nullptr){
+void setPart(struct _Texture &texture, int x, int y, int _width,
+			 int _height)
+{
+	if (texture.privateData == nullptr)
+	{
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
-		// Check inverting
+	// Check inverting
 	bool inverted_x = (texture.vertices[3] > texture.vertices[8]);
 	bool inverted_y = (texture.vertices[4] > texture.vertices[14]);
 	float begin_x = texture.vertices[3], begin_y = texture.vertices[4];
 
-	if(!inverted_x){
+	if (!inverted_x)
+	{
 		x += static_cast<int>(begin_x * getInitialWidth(texture));
-	}else{
+	}
+	else
+	{
 		x = static_cast<int>(begin_x * getInitialWidth(texture)) - x;
 		_width *= -1;
 	}
 
-	if(inverted_y){
+	if (inverted_y)
+	{
 		y = static_cast<int>(begin_y * getInitialHeight(texture)) - y;
 		_height *= -1;
 	}
-	else{
+	else
+	{
 		y += static_cast<int>(begin_y * getInitialHeight(texture));
 	}
 	begin_x = x + _width, begin_y = y + _height;
@@ -207,7 +185,6 @@ void setPart(struct _Texture& texture, int x,  int y,  int _width,
 	float y_diff = ((1.0 * y) / texture.privateData->initial_height);
 	float width_diff = (1.0 * _width) / texture.privateData->initial_width;
 	float height_diff = (1.0 * _height) / texture.privateData->initial_height;
-	
 
 	texture.vertices[3] = x_diff;
 	texture.vertices[4] = y_diff;
@@ -225,53 +202,57 @@ void setPart(struct _Texture& texture, int x,  int y,  int _width,
 	texture.vertices[24] = y_diff + height_diff;
 
 	texture.vertices[28] = x_diff;
-	texture.vertices[29] = y_diff + height_diff;;
-
+	texture.vertices[29] = y_diff + height_diff;
 }
 
-static void setVectices(float* vertices){
-	std::copy(tmp, tmp + 30, vertices);
-}
-
-int getInitialHeight(struct _Texture& texture) {
-	if(texture.privateData == nullptr){
+int getInitialHeight(struct _Texture &texture)
+{
+	if (texture.privateData == nullptr)
+	{
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return -1;
 	}
-		return texture.privateData->initial_height;
+	return texture.privateData->initial_height;
 }
 
-int getInitialWidth(struct _Texture& texture) {
-	if(texture.privateData == nullptr){
+int getInitialWidth(struct _Texture &texture)
+{
+	if (texture.privateData == nullptr)
+	{
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return -1;
 	}
 	return texture.privateData->initial_width;
 }
 
-void copyTexture(Texture &copy_from, Texture &copy_to){
-	if(copy_from.privateData == nullptr){
+void copyTexture(Texture &copy_from, Texture &copy_to)
+{
+	if (copy_from.privateData == nullptr)
+	{
 		std::cerr << "TEXTURE: Texture has been deleted or not initialized" << std::endl;
 		return;
 	}
 	loadTexture(copy_from.privateData->pathToFile, copy_to);
 }
 
-void loadTexture(std::string textureFile, struct _Texture& texture){
-	setVectices(texture.vertices);
+void loadTexture(std::string textureFile, struct _Texture &texture)
+{
+	std::copy(_vertices, _vertices + 30, texture.vertices);
 	texture.id = _png_load(textureFile.c_str(), &texture.width, &texture.height);
-	if(texture.id == 0)
+	if (texture.id == 0)
 		std::cerr << "TEXTURE: Failed to load texture " << textureFile << std::endl;
 	texture.privateData = writePrivateData(textureFile, true, texture.width, texture.height);
 }
 
-void toDefault(struct _Texture& texture){
-	setVectices(texture.vertices);
+void toDefault(struct _Texture &texture)
+{
+	std::copy(_vertices, _vertices + 30, texture.vertices);
 	texture.width = getInitialWidth(texture);
 	texture.height = getInitialHeight(texture);
 }
 
-void inheritTexture(Texture &inherit_from, Texture &to){
+void inheritTexture(Texture &inherit_from, Texture &to)
+{
 	to.id = inherit_from.id;
 	to.width = inherit_from.width;
 	to.height = inherit_from.height;

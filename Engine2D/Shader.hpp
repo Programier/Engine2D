@@ -10,11 +10,14 @@
 
 #include <string>
 
-namespace Shader{
+#include <glm/glm.hpp>
+namespace Shader
+{
     extern unsigned int id;
     int init();
     void deleteShader();
     void use();
+    void useMatrix(std::string name, glm::mat4 matrix);
 }
 
 #endif /* MYENGINE_SHADER_HPP_ */

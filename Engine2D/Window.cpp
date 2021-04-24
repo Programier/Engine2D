@@ -61,8 +61,6 @@ void Window::swapBuffers() {
 }
 
 bool Window::isOpen() {
-	glfwGetWindowSize(window, &width, &height);
-	glViewport(0, 0, width, height);
 	return !glfwWindowShouldClose(window);
 }
 void Window::setShouldClose(bool flag) {

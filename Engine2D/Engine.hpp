@@ -8,4 +8,11 @@
 #include "Texture.hpp"
 #include "Music.hpp"
 
-#endif 
+inline std::string getProgrammPath(std::string binaryFilePath)
+{
+    while (!binaryFilePath.empty() && binaryFilePath[binaryFilePath.length() - 1] != '/' && binaryFilePath[binaryFilePath.length() - 1] != '\\')
+        binaryFilePath.erase(binaryFilePath.end() - 1);
+    return binaryFilePath;
+}
+
+#endif
