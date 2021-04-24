@@ -138,6 +138,22 @@ void draw(struct _Texture &texture, int x, int y, float angle, std::size_t width
 	glBindVertexArray(Texture_Renderer::VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+
+	if (invetion_status != NONE)
+	{
+		switch (invetion_status)
+		{
+		case HORIZONTAL:
+			invertHorizontally(texture);
+			break;
+		case VERTICAL:
+			invertVertically(texture);
+			break;
+
+		default:
+			break;
+		}
+	}
 }
 
 void setPart(struct _Texture &texture, int x, int y, int _width,
