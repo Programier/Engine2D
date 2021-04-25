@@ -29,7 +29,7 @@ typedef struct _Texture
 
 // Texture functions
 
-void loadTexture(std::string textureFile, Texture &texture);
+int loadTexture(std::string textureFile, Texture &texture);
 void setPart(Texture &texture, int x, int y, int width, int heigth);
 void draw(Texture &texture, int x = 0, int y = 0, float angle = 0, std::size_t width = 0, std::size_t height = 0, Inversion invetion_status = NONE);
 int getInitialWidth(Texture &texture);

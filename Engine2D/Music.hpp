@@ -7,7 +7,7 @@ typedef struct _Music{
 
 namespace Speaker
 {
-    void init();
+    int init();
     void terminate();
     void play(Music &music);
     bool isInited();

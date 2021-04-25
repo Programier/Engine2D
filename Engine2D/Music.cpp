@@ -51,7 +51,7 @@ void Speaker::clearStack()
     std::cout << "AUDIO: Stack cleaned succesfully" << std::endl;
 }
 
-void Speaker::init()
+int Speaker::init()
 {
     if (!inited)
     {
@@ -61,7 +61,7 @@ void Speaker::init()
         if (device == nullptr)
         {
             std::cerr << "SPEAKER: Failed to load speaker device" << std::endl;
-            return;
+            return -1;
         }
 
         // Initialize context
@@ -69,13 +69,15 @@ void Speaker::init()
         if (!alcMakeContextCurrent(context))
         {
             std::cerr << "Failed to init context " << std::endl;
-            return;
+            return -1;
         }
         std::cout << "SPEAKER: Speaker succesfully initialized" << std::endl;
         inited = true;
     }
     else
         std::cerr << "SPEAKER: Speaker device already initialized" << std::endl;
+
+    return 0;
 }
 
 void Speaker::play(Music &music)

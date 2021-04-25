@@ -251,13 +251,17 @@ void copyTexture(Texture &copy_from, Texture &copy_to)
 	loadTexture(copy_from.privateData->pathToFile, copy_to);
 }
 
-void loadTexture(std::string textureFile, struct _Texture &texture)
+int loadTexture(std::string textureFile, struct _Texture &texture)
 {
 	std::copy(_vertices, _vertices + 30, texture.vertices);
 	texture.id = _png_load(textureFile.c_str(), &texture.width, &texture.height);
 	if (texture.id == 0)
+	{
 		std::cerr << "TEXTURE: Failed to load texture " << textureFile << std::endl;
+		return -1;
+	}
 	texture.privateData = writePrivateData(textureFile, true, texture.width, texture.height);
+	return 0;
 }
 
 void toDefault(struct _Texture &texture)
