@@ -12,16 +12,25 @@
 
 namespace Event
 {
-    extern bool _keys[1024];
-    extern unsigned int _frames[1024];
-    extern unsigned int _current;
-
     int init();
     void pollEvents();
     void terminate();
-    bool pressed(int keycode);
-    bool jpressed(int keycode);
+    namespace Keyboard
+    {
+        bool pressed(int keycode);
+        bool jpressed(int keycode);
+    } // namespace Keyboard
+
+    namespace Mouse
+    {
+        bool pressed(int keycode);
+        bool jpressed(int keycode);
+        int getX();
+        int getY();
+    } // namespace Mouse
+
     bool isInited();
+
 } // namespace Event
 
 #endif

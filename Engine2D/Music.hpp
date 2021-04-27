@@ -1,8 +1,9 @@
 #ifndef SOUND_HPP
 #define SOUND_HPP
 #include <string>
-typedef struct _Music{
-     struct _MusicData *privateField = nullptr;
+typedef struct _Music
+{
+    struct _MusicData *privateField = nullptr;
 } Music;
 
 namespace Speaker
@@ -19,6 +20,7 @@ namespace Speaker
 }
 
 void loadWAV(std::string filename, Music &music);
+Music loadWAV(std::string filename);
 void deleteMusic(Music &music);
 
 #endif

@@ -251,6 +251,13 @@ void copyTexture(Texture &copy_from, Texture &copy_to)
 	loadTexture(copy_from.privateData->pathToFile, copy_to);
 }
 
+Texture copyTexture(Texture &copy_from)
+{
+	Texture texture;
+	copyTexture(copy_from, texture);
+	return texture;
+}
+
 int loadTexture(std::string textureFile, struct _Texture &texture)
 {
 	std::copy(_vertices, _vertices + 30, texture.vertices);
@@ -262,6 +269,13 @@ int loadTexture(std::string textureFile, struct _Texture &texture)
 	}
 	texture.privateData = writePrivateData(textureFile, true, texture.width, texture.height);
 	return 0;
+}
+
+Texture loadTexture(std::string textureFile)
+{
+	Texture texture;
+	loadTexture(textureFile, texture);
+	return texture;
 }
 
 void toDefault(struct _Texture &texture)
@@ -280,4 +294,25 @@ void inheritTexture(Texture &inherit_from, Texture &to)
 	if (to.privateData != nullptr)
 		delete to.privateData;
 	to.privateData = writePrivateData(inherit_from.privateData->pathToFile, true, getInitialWidth(inherit_from), getInitialHeight(inherit_from), true);
+}
+
+Texture inheritTexture(Texture &inheritFrom)
+{
+	Texture texture;
+	inheritTexture(inheritFrom, texture);
+	return texture;
+}
+
+Texture getPartFrom(Texture &texture, int x, int y, int width, int heigth)
+{
+	Texture _texture = copyTexture(texture);
+	setPart(_texture, x, y, width, heigth);
+	return _texture;
+}
+
+Texture inheritPartFrom(Texture &texture, int x, int y, int width, int heigth)
+{
+	Texture _texture = inheritTexture(texture);
+	setPart(_texture, x, y, width, heigth);
+	return _texture;
 }

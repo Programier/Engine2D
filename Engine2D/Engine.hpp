@@ -7,6 +7,7 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Music.hpp"
+#include "Button.hpp"
 
 inline std::string getProgrammPath(std::string binaryFilePath)
 {

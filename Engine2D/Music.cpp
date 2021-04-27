@@ -222,6 +222,13 @@ void loadWAV(std::string filename, Music &music)
     std::cout << "AUDIO: Data loaded successfully from a file \"" << filename << "\"" << std::endl;
 }
 
+Music loadWAV(std::string filename)
+{
+    Music music;
+    loadWAV(filename, music);
+    return music;
+}
+
 void deleteMusic(Music &music)
 {
     std::cout << "AUDIO: Start freeing resources for the file \"" << music.privateField->path << "\"" << std::endl;
