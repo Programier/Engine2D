@@ -29,7 +29,7 @@ Button createButton(Texture &button_texture, Texture &underCursor, Texture &pres
                     int x = 0, int y = 0, int width = 0, int height = 0, float angle = 0, bool visible = true)
 {
     Button button;
-    createButton(button, button_texture, underCursor, pressed, );
+    createButton(button, button_texture, underCursor, pressed, x, y, height, angle, visible);
     return button;
 }
 
