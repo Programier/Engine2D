@@ -2,15 +2,17 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <cmath>
 
-#define GROUND_SPEED 3
+#define GROUND_SPEED 3.5
 #define BIRD_X 250
 #define BIRD_FRAME_SPEED 0.2
 #define GROUND_POS_Y 86
 #define JUMP 7
 #define DIGIT_SIZE 32
-#define COLUMN_DISTANCE_Y 150
+#define COLUMN_DISTANCE_Y 135
 #define COLUMN_DISTANCE_X 250
+#define COLUMN_DIFF_Y 250
 #define MAX_FALLING_SPEED -15
 
 namespace GameData
@@ -28,7 +30,8 @@ namespace GameData
         Texture texture[4];
         double frame = 0;
         int size_x, size_y;
-
+        float angle = 0;
+        float prev_angle = 0;
     } bird;
 
     struct
@@ -49,9 +52,11 @@ namespace GameData
     } Column;
 
     std::vector<Column> columns;
-    bool pause = false, gameOver = false, change_column = false, gameOverAudioIsReproduced = false;
+    bool pause = false, gameOver = false, change_column = false,
+         gameOverAudioIsReproduced = false;
     double sky_x = 0, ground_x, diff = 1;
-    int background_width, background_frame_count, ground_pos = GROUND_POS_Y, column_width, column_height, colums_count;
+    int background_width, background_frame_count, ground_pos = GROUND_POS_Y,
+                                                  column_width, column_height, colums_count;
     unsigned int score = 0;
     Texture _column;
 
@@ -64,11 +69,13 @@ namespace GameData
 
     void loadResources()
     {
-        loadTexture(GameData::programmPath + "images/Background.png", background.background);
+        loadTexture(GameData::programmPath + "images/Background.png",
+                    background.background);
         inheritTexture(background.background, background.ground);
         inheritTexture(background.background, background.sky);
         setPart(background.ground, 0, 0, background.background.width, 100);
-        setPart(background.sky, 0, 100, background.background.width, background.background.height - 100);
+        setPart(background.sky, 0, 100, background.background.width,
+                background.background.height - 100);
         loadTexture(programmPath + "images/counts.png", digits.baseTexture);
         for (int i = 0; i < 10; i++)
         {
@@ -76,7 +83,8 @@ namespace GameData
             setPart(digits.digits[i], i * 102, 0, 102, 102);
         }
         for (int i = 0; i < 4; i++)
-            loadTexture(programmPath + "images/flap" + std::to_string(i + 1) + ".png", bird.texture[i]);
+            loadTexture(programmPath + "images/flap" + std::to_string(i + 1) + ".png",
+                        bird.texture[i]);
         loadTexture(programmPath + "images/fps.png", fps_texture);
         loadWAV(programmPath + "audio/sfx_wing.wav", audio.wings);
         loadWAV(programmPath + "audio/sfx_die.wav", audio.die);
@@ -99,9 +107,47 @@ namespace GameData
         deleteTexture(_column);
     }
 
+    void updateBird()
+    {
+        if (bird.y > GROUND_POS_Y * diff)
+        {
+            bird.y += bird.speed_y * 60 / FPS;
+            bird.speed_y -= 0.4 * diff * 60 / FPS;
+            if (bird.speed_y < MAX_FALLING_SPEED)
+                bird.speed_y = MAX_FALLING_SPEED;
+            if (bird.frame >= 4)
+                bird.frame = 0;
+            bird.x = BIRD_X * diff;
+            bird.size_y = getInitialHeight(bird.texture[0]) * diff;
+            bird.size_x = getInitialWidth(bird.texture[0]) * diff;
+
+            bird.angle = atan(fabs((bird.speed_y * 60.0 / FPS) / (2 * GROUND_SPEED))) * 180 / M_PI;
+            bird.angle = bird.prev_angle + (bird.angle - bird.prev_angle) / 1.5;
+            if ((bird.speed_y * 60.0 / FPS) < 0)
+            {
+                bird.angle *= -1.0;
+            }
+        }
+    }
+
     void updateInfo()
     {
-        if (Event::jpressed(GLFW_KEY_P))
+
+        auto getMinLimit = [](int index) -> int {
+            int min = COLUMN_DIFF_Y;
+            if (columns[index].y_lower - min + _column.height < 10)
+                min = -1 * (10 - _column.height - columns[index].y_lower);
+            return min;
+        };
+
+        auto getMaxLimit = [](int index) -> int {
+            int max = COLUMN_DIFF_Y;
+            if (columns[index].y_lower + max + _column.height > window_initial_height)
+                max = (window_initial_height - _column.height - columns[index].y_lower);
+            return max;
+        };
+
+        if (Event::Keyboard::jpressed(GLFW_KEY_P))
         {
             if (pause)
             {
@@ -111,14 +157,7 @@ namespace GameData
             }
             pause = !pause;
         }
-        if (Event::pressed(GLFW_KEY_UP))
-        {
-            bird.y++;
-        }
-        if (Event::pressed(GLFW_KEY_DOWN))
-        {
-            bird.y--;
-        }
+
         diff = static_cast<double>(Window::height) / window_initial_height;
         column_height = _column.height * diff;
         column_width = _column.width * diff;
@@ -128,12 +167,6 @@ namespace GameData
             ground_x -= (GROUND_SPEED * diff) * 60 / FPS;
             //bird.frame += BIRD_FRAME_SPEED * 60 / FPS;
             bird.frame = (bird.speed_y < -6 * diff) ? 3 : bird.frame + (BIRD_FRAME_SPEED * 60 / FPS);
-            bird.y += bird.speed_y * 60 / FPS;
-            bird.speed_y -= 0.4 * diff * 60 / FPS;
-            if (bird.speed_y < MAX_FALLING_SPEED)
-                bird.speed_y = MAX_FALLING_SPEED;
-            if (bird.frame >= 4)
-                bird.frame = 0;
 
             if (sky_x <= -1 * background_width)
                 sky_x = 0;
@@ -155,7 +188,7 @@ namespace GameData
                 bird.speed_y = 0;
             }
 
-            if (Event::jpressed(GLFW_KEY_SPACE))
+            if (Event::Keyboard::jpressed(GLFW_KEY_SPACE))
             {
                 bird.speed_y = JUMP * diff;
                 Speaker::play(audio.wings);
@@ -163,7 +196,9 @@ namespace GameData
 
             if (columns.size() > 1)
             {
-                if (bird.x >= columns[change_column].x + column_width)
+                if ((bird.x >= columns[change_column].x + column_width - bird.size_y / 2) &&
+                    (bird.x < GROUND_SPEED * diff + columns[change_column].x + column_width -
+                                  bird.size_y / 2))
                 {
                     score++;
                     change_column = true;
@@ -172,31 +207,47 @@ namespace GameData
 
                 // Check collisions
                 if (bird.y + 2 * diff < columns[change_column].y_lower * diff + Window::height || bird.y + bird.size_y - 3 * diff > columns[change_column].y_upper * diff)
-                    if (bird.x + bird.size_x - 4 * diff >= columns[change_column].x && bird.x - 4 * diff <= columns[change_column].x + column_width)
+                    if (bird.x + bird.size_x - 4 * diff >= columns[change_column].x &&
+                        bird.x - 4 * diff <= columns[change_column].x + column_width)
                     {
                         pause = true;
                         gameOver = true;
                     }
             }
         }
+
         digits.size = DIGIT_SIZE * diff;
         //bird.x = BIRD_X * (static_cast<double>(Window::width) / GameData::window_initial_width);
-        bird.x = BIRD_X * diff;
-        bird.size_y = getInitialHeight(bird.texture[0]) * diff;
-        bird.size_x = getInitialWidth(bird.texture[0]) * diff;
+        if (!pause)
+            updateBird();
         background_width = getInitialWidth(background.background) * static_cast<double>(Window::height) / getInitialHeight(background.background);
 
+        // Columns generation
         colums_count = (3 + (Window::width / ((static_cast<double>(column_width) + COLUMN_DISTANCE_X) * diff)));
         for (int i = 0; i < colums_count; i++)
         {
-            if (i >= columns.size())
+            if (i >= static_cast<int>(columns.size()))
             {
                 columns.push_back(Column());
                 if (columns.size() == 1)
+                {
                     columns[0].x = Window::width + COLUMN_DISTANCE_X * diff;
+                    columns[i].y_lower = (-1 * (_column.height - GROUND_POS_Y)) + rand() % (static_cast<int>((_column.height - COLUMN_DISTANCE_Y - GROUND_POS_Y)));
+                }
                 else
+                {
                     columns[i].x = columns[i - 1].x + COLUMN_DISTANCE_X * diff;
-                columns[i].y_lower = (-1 * (_column.height - GROUND_POS_Y)) + rand() % (static_cast<int>((_column.height - COLUMN_DISTANCE_Y - GROUND_POS_Y)));
+
+                    int tmp = getMinLimit(i - 1);
+                    columns[i].y_lower = columns[i - 1].y_lower + (rand() % (getMaxLimit(i - 1) + tmp) - tmp);
+                }
+                if (columns[i].y_lower + _column.height + COLUMN_DISTANCE_Y >
+                    window_initial_height - 10)
+                    columns[i].y_lower = window_initial_height - COLUMN_DISTANCE_Y - _column.height - 10;
+
+                if (columns[i].y_lower + _column.height <= GROUND_POS_Y + 10)
+                    columns[i].y_lower = GROUND_POS_Y + 10 - _column.height;
+
                 columns[i].y_upper = columns[i].y_lower + (_column.height + COLUMN_DISTANCE_Y);
             }
             else
@@ -248,30 +299,29 @@ void drawFrame()
     using namespace GameData;
     // Draw sky
     for (int i = 0; i < background_frame_count; i++)
-        draw(background.sky, sky_x + i * background_width, GROUND_POS_Y * diff, background_width, Window::height - GROUND_POS_Y * diff);
+        draw(background.sky, sky_x + i * background_width, GROUND_POS_Y * diff, 0, background_width, Window::height - GROUND_POS_Y * diff);
 
     // Draw Column
-    double _diff = (static_cast<double>(Window::width) / window_initial_width);
     for (int i = 0; i < colums_count; i++)
     {
-        draw(_column, columns[i].x, columns[i].y_lower * diff, column_width, Window::height);
-        draw(_column, columns[i].x, columns[i].y_upper * diff, column_width, Window::height, HORIZONTAL);
+        draw(_column, columns[i].x, columns[i].y_lower * diff, 0, column_width, Window::height);
+        draw(_column, columns[i].x, columns[i].y_upper * diff, 0, column_width, Window::height, HORIZONTAL);
     }
 
     // Draw ground
     for (int i = 0; i < background_frame_count; i++)
-        draw(background.ground, ground_x + i * background_width, 0, background_width, GROUND_POS_Y * diff);
+        draw(background.ground, ground_x + i * background_width, 0, 0, background_width, GROUND_POS_Y * diff);
 
     // Draw score
     std::vector<int> _digits = countToVector(score);
     int begin = (Window::width / 2) - digits.size + (_digits.size() % 2 == 0) * (digits.size / 2) - ((_digits.size() / 2) * digits.size);
     int y_pos = Window::height - digits.size - 8;
-    for (int i = 0; i < _digits.size(); i++)
-        draw(digits.digits[_digits[i]], begin + i * digits.size, y_pos, digits.size, digits.size);
+    for (std::size_t i = 0; i < _digits.size(); i++)
+        draw(digits.digits[_digits[i]], begin + i * digits.size, y_pos, 0, digits.size, digits.size);
 
     // Draw bird
 
-    draw(bird.texture[static_cast<int>(bird.frame)], bird.x, bird.y, bird.size_x, bird.size_y);
+    draw(bird.texture[static_cast<int>(bird.frame)], bird.x, bird.y, bird.angle, bird.size_x, bird.size_y);
 
     // Draw FPS counter
     if (show_fps)
@@ -280,19 +330,21 @@ void drawFrame()
         _digits = countToVector(tmp_FPS);
         int y_pos = Window::height - GameData::digits.size - 8;
         int fps_width = (GameData::fps_texture.width / 3) * GameData::diff;
-        draw(GameData::fps_texture, 10, y_pos, fps_width, GameData::digits.size * 2);
-        for (int i = 0; i < _digits.size(); i++)
-            draw(GameData::digits.digits[_digits[i]], 10 + fps_width + i * GameData::digits.size, y_pos, GameData::digits.size, GameData::digits.size);
+        draw(GameData::fps_texture, 10, y_pos, 0, fps_width, GameData::digits.size * 2);
+        for (std::size_t i = 0; i < _digits.size(); i++)
+            draw(GameData::digits.digits[_digits[i]], 10 + fps_width + i * GameData::digits.size, y_pos, 0, GameData::digits.size, GameData::digits.size);
     }
 }
 
-int start_game(int argc, char **argv)
+void menu()
+{
+}
+
+int start_game(char *argv)
 {
     srand(time(NULL));
-    GameData::programmPath = argv[0];
-    while (!GameData::programmPath.empty() && GameData::programmPath[GameData::programmPath.length() - 1] != '/' && GameData::programmPath[GameData::programmPath.length() - 1] != '\\')
-        GameData::programmPath.erase(GameData::programmPath.end() - 1);
-
+    GameData::programmPath = getProgrammPath(argv);
+    loadEngine(GameData::programmPath + "lib/");
     Window::init(1280, 720, "FlappyBird", true);
     Event::init();
     Texture_Renderer::init();
@@ -301,8 +353,9 @@ int start_game(int argc, char **argv)
     /* Loading Data from external files */
     GameData::loadResources();
 
-    auto begin = std::chrono::steady_clock::now(), fps_updater = std::chrono::steady_clock::now();
-    while (Window::isOpen() /* && !GameData::gameOver */)
+    auto begin = std::chrono::steady_clock::now(),
+         fps_updater = std::chrono::steady_clock::now();
+    while (Window::isOpen() && !GameData::gameOver)
     {
         begin = std::chrono::steady_clock::now();
         Event::pollEvents();
@@ -319,15 +372,27 @@ int start_game(int argc, char **argv)
             GameData::tmp_FPS = GameData::FPS;
         }
     }
+
+    // Game Already is over
+    // Show bird animation
+    while (Window::isOpen())
+    {
+        Event::pollEvents();
+        Window::clearBuffer();
+        GameData::updateBird();
+        drawFrame();
+        Window::swapBuffers();
+    }
     Window::terminate();
     Event::terminate();
     Texture_Renderer::terminate();
     Speaker::terminate();
     GameData::deleteResources();
+    closeEngine();
     return GameData::score;
 }
 
 int main(int argc, char **argv)
 {
-    return start_game(argc, argv);
+    return start_game(argv[0]);
 }
