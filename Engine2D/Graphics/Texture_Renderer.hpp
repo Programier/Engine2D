@@ -8,13 +8,15 @@
 #ifndef TEXTURE_RENDERER_HPP
 #define TEXTURE_RENDERER_HPP
 #include "GLFW/glfw3.h"
-
-namespace Texture_Renderer
+extern "C"
 {
-	extern GLuint VAO, VBO;
-	int init();
-	void terminate();
-	bool isInited();
+	namespace Texture_Renderer
+	{
+		extern GLuint VAO, VBO;
+		int initTextureRenderer();
+		void terminate();
+		bool isInited();
+	}
 }
 
 #endif /* TEXTURE_RENDERER_HPP */
