@@ -14,7 +14,7 @@
 #define DIGIT_SIZE 32
 #define COLUMN_DISTANCE_Y 140
 #define COLUMN_DISTANCE_X 250
-#define COLUMN_DIFF_Y 250
+#define COLUMN_DIFF_Y 230
 #define MAX_FALLING_SPEED -15
 #define MIN_WINDOW_WIDTH 400
 #define MIN_WINDOW_HEIGHT 200
@@ -63,7 +63,7 @@ namespace GameData
     int background_width, background_frame_count, ground_pos = GROUND_POS_Y,
                                                   column_width, column_height, colums_count;
     unsigned int score = 0, max_score = 0;
-    Texture _column;
+    Texture _column, best_score;
 
     // Programm Variables
     std::string programmPath;
@@ -71,6 +71,7 @@ namespace GameData
     int FPS = 60, tmp_FPS = FPS;
     Texture fps_texture;
     bool show_fps = true;
+    bool rezisable = false;
     struct
     {
         Texture txr;
@@ -107,6 +108,7 @@ namespace GameData
         createButton(play.button, play.txr, play.txr, play.txr);
         loadTexture(programmPath + "images/quit.png", quit.txr);
         createButton(quit.button, quit.txr, quit.txr, quit.txr);
+        loadTexture(programmPath + "images/best.png", best_score);
     }
 
     void deleteResources()
@@ -121,6 +123,10 @@ namespace GameData
         deleteMusic(audio.hit);
         deleteMusic(audio.point);
         deleteTexture(_column);
+        deleteTexture(continueButton.txr);
+        deleteTexture(play.txr);
+        deleteTexture(quit.txr);
+        deleteTexture(best_score);
     }
 
     void resetData()
@@ -233,8 +239,8 @@ namespace GameData
 
                 // Check collisions
                 if (bird.y + 2 * diff < columns[change_column].y_lower * diff + Window::height || bird.y + bird.size_y - 3 * diff > columns[change_column].y_upper * diff)
-                    if (bird.x + bird.size_x - 4 * diff >= columns[change_column].x &&
-                        bird.x - 4 * diff <= columns[change_column].x + column_width)
+                    if (bird.x + bird.size_x - 3 * diff >= columns[change_column].x &&
+                        bird.x - 3 * diff <= columns[change_column].x + column_width)
                     {
                         pause = true;
                         gameOver = true;
@@ -364,12 +370,25 @@ void drawFrame()
     {
         _digits.clear();
         _digits = countToVector(tmp_FPS);
-        int y_pos = Window::height - GameData::digits.size - 8;
-        int fps_width = (GameData::fps_texture.width / 3) * GameData::diff;
-        draw(GameData::fps_texture, 10, y_pos, 0, fps_width, GameData::digits.size * 2);
+        y_pos = Window::height - digits.size - 8;
+        int fps_width = (fps_texture.width / 3) * diff;
+        draw(fps_texture, 10, y_pos, 0, fps_width, digits.size * 2);
         for (std::size_t i = 0; i < _digits.size(); i++)
-            draw(GameData::digits.digits[_digits[i]], 10 + fps_width + i * GameData::digits.size, y_pos, 0, GameData::digits.size, GameData::digits.size);
+            draw(digits.digits[_digits[i]], 10 + fps_width + i * digits.size, y_pos, 0, digits.size, digits.size);
     }
+
+    // Draw best score
+
+    _digits.clear();
+    _digits = countToVector(max_score);
+    int __width = best_score.width * diff / 2;
+    int __height = best_score.height * diff / 2;
+    y_pos = Window::height - __height - 5 * diff;
+    begin = Window::width - __width - digits.size * _digits.size();
+    draw(GameData::best_score, begin, y_pos, 0, __width, __height);
+    begin += __width;
+    for (std::size_t i = 0; i < _digits.size(); i++)
+        draw(digits.digits[_digits[i]], begin + i * digits.size, y_pos, 0, digits.size, digits.size);
 }
 
 void startTimer()
@@ -537,7 +556,7 @@ void serialize()
 int start_game(char *argv)
 {
     srand(time(NULL));
-    Window::init(1280, 720, "FlappyBird", true, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+    Window::init(1280, 720, "FlappyBird", GameData::rezisable, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
     Event::init();
     Texture_Renderer::init();
     Speaker::init();
@@ -607,6 +626,10 @@ int start_game(char *argv)
 
 int main(int argc, char **argv)
 {
+    if (argc > 1 && std::string(argv[1]) == "1")
+    {
+        GameData::rezisable = true; // Experimental settings
+    }
     GameData::programmPath = getProgrammPath(argv[0]);
     if (loadEngine(GameData::programmPath + "lib/") == -1)
         return EXIT_FAILURE;
