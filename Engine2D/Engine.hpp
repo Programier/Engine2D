@@ -116,7 +116,7 @@ typedef struct Button
 void createButton(Button &button, Texture &button_texture, Texture &underCursor, Texture &pressed,
                   int x = 0, int y = 0, int width = 0, int height = 0, float angle = 0, bool visible = true);
 
-void drawButton(Button &button);
+void draw(Button &button);
 void deleteButton(Button &button);
 bool buttonClicked(Button &button);
 

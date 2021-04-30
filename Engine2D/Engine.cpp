@@ -390,7 +390,7 @@ void createButton(Button &button, Texture &button_texture, Texture &underCursor,
              .func[13])(button, button_texture, underCursor, pressed, x, y, width, height, angle, visible);
 }
 
-void drawButton(Button &button)
+void draw(Button &button)
 {
     if (_functions[3].inited)
         ((void (*)(Button &))_functions[3].func[14])(button);
