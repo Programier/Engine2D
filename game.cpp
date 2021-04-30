@@ -4,6 +4,7 @@
 #include <thread>
 #include <cmath>
 #include <iostream>
+#include <fstream>
 
 #define GROUND_SPEED 3.5
 #define BIRD_X 250
@@ -17,6 +18,7 @@
 #define MAX_FALLING_SPEED -15
 #define MIN_WINDOW_WIDTH 400
 #define MIN_WINDOW_HEIGHT 200
+#define OUT_BINARY_FILE "state.bin"
 
 namespace GameData
 {
@@ -56,7 +58,7 @@ namespace GameData
 
     std::vector<Column> columns;
     bool pause = false, gameOver = true, change_column = false,
-         gameOverAudioIsReproduced = true;
+         gameOverAudioIsReproduced = true, gameStarted = false;
     double sky_x = 0, ground_x, diff = 1;
     int background_width, background_frame_count, ground_pos = GROUND_POS_Y,
                                                   column_width, column_height, colums_count;
@@ -131,6 +133,8 @@ namespace GameData
         bird.frame = 0;
         bird.angle = 0, bird.prev_angle = 0;
         columns.clear();
+        gameStarted = false;
+        change_column = false;
     }
     bool updateBird()
     {
@@ -177,7 +181,7 @@ namespace GameData
             return max;
         };
 
-        if (Event::Keyboard::jpressed(GLFW_KEY_P) && !blockInput)
+        if (Event::Keyboard::jpressed(GLFW_KEY_ESCAPE) && !blockInput)
         {
             pause = !pause;
         }
@@ -239,6 +243,7 @@ namespace GameData
                 if (!change_column && columns[0].x + column_width < bird.x)
                 {
                     change_column = true;
+                    gameStarted = true;
                     std::cout << "GAME: Column index for collision detection changed" << std::endl;
                 }
             }
@@ -417,11 +422,116 @@ void play()
     }
 }
 
+template <typename T>
+inline void _write(std::ofstream &to, T *value)
+{
+    to.write((char *)value, sizeof(T));
+}
+
+template <typename T>
+inline void _read(std::ifstream &to, T *value)
+{
+    to.read((char *)value, sizeof(T));
+}
+
 void deserialize()
 {
+    std::cout << "Deserialization start" << std::endl;
+    std::ifstream file(OUT_BINARY_FILE, std::ios::binary);
+    if (file.is_open())
+    {
+        // Bird
+        _read(file, &GameData::bird.y);
+        _read(file, &GameData::bird.x);
+        _read(file, &GameData::bird.speed_y);
+        _read(file, &GameData::bird.frame);
+        _read(file, &GameData::bird.angle);
+        _read(file, &GameData::bird.prev_angle);
+
+        // Game variables
+        _read(file, &GameData::pause);
+        _read(file, &GameData::gameOver);
+        _read(file, &GameData::change_column);
+        _read(file, &GameData::gameOverAudioIsReproduced);
+        _read(file, &GameData::sky_x);
+        _read(file, &GameData::ground_x);
+        _read(file, &GameData::diff);
+        _read(file, &GameData::background_width);
+        _read(file, &GameData::background_frame_count);
+        _read(file, &GameData::ground_pos);
+        _read(file, &GameData::column_width);
+        _read(file, &GameData::column_height);
+        _read(file, &GameData::colums_count);
+        _read(file, &GameData::score);
+        _read(file, &GameData::max_score);
+        _read(file, &GameData::gameStarted);
+        std::cout << "HERE" << std::endl;
+        // Column positions
+        int size;
+        _read(file, &size);
+        for (int i = 0; i < size; i++)
+        {
+            GameData::columns.push_back(GameData::Column());
+            _read(file, &GameData::columns[i].x);
+            _read(file, &GameData::columns[i].y_lower);
+            _read(file, &GameData::columns[i].y_upper);
+        }
+        file.close();
+        std::cout << "End of deserialization" << std::endl;
+    }
+    else
+    {
+        std::cerr << "Could not open file. State is not deserialized" << std::endl;
+    }
 }
 void serialize()
 {
+    std::cout << "Serialization start" << std::endl;
+    std::ofstream file(OUT_BINARY_FILE, std::ios::binary);
+    if (file.is_open())
+    {
+        // Bird
+        _write(file, &GameData::bird.y);
+        _write(file, &GameData::bird.x);
+        _write(file, &GameData::bird.speed_y);
+        _write(file, &GameData::bird.frame);
+        _write(file, &GameData::bird.angle);
+        _write(file, &GameData::bird.prev_angle);
+
+        // Game variables
+        _write(file, &GameData::pause);
+        _write(file, &GameData::gameOver);
+        _write(file, &GameData::change_column);
+        _write(file, &GameData::gameOverAudioIsReproduced);
+        _write(file, &GameData::sky_x);
+        _write(file, &GameData::ground_x);
+        _write(file, &GameData::diff);
+        _write(file, &GameData::background_width);
+        _write(file, &GameData::background_frame_count);
+        _write(file, &GameData::ground_pos);
+        _write(file, &GameData::column_width);
+        _write(file, &GameData::column_height);
+        _write(file, &GameData::colums_count);
+        _write(file, &GameData::score);
+        _write(file, &GameData::max_score);
+        _write(file, &GameData::gameStarted);
+
+        // Column positions
+        int size = static_cast<int>(GameData::columns.size());
+        _write(file, &size);
+        for (int i = 0; i < GameData::columns.size(); i++)
+        {
+            _write(file, &GameData::columns[i].x);
+            _write(file, &GameData::columns[i].y_lower);
+            _write(file, &GameData::columns[i].y_upper);
+        }
+        file.close();
+        std::cout << "End of serialization" << std::endl;
+    }
+    else
+    {
+        std::cerr << "Could not open file. State is not serialized" << std::endl;
+    }
 }
 
 int start_game(char *argv)
@@ -435,6 +545,12 @@ int start_game(char *argv)
     /* Loading Data from external files */
     GameData::loadResources();
     deserialize();
+    if (GameData::gameOver || !GameData::gameStarted)
+    {
+        GameData::resetData();
+        GameData::gameOver = true;
+        GameData::gameOverAudioIsReproduced = true;
+    }
     GameData::updateInfo(true);
     while (Window::isOpen())
     {
@@ -486,7 +602,7 @@ int start_game(char *argv)
     Speaker::terminate();
     GameData::deleteResources();
     closeEngine();
-    return GameData::score;
+    return EXIT_SUCCESS;
 }
 
 int main(int argc, char **argv)
