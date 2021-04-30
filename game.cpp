@@ -456,7 +456,7 @@ inline void _read(std::ifstream &to, T *value)
 void deserialize()
 {
     std::cout << "Deserialization start" << std::endl;
-    std::ifstream file(OUT_BINARY_FILE, std::ios::binary);
+    std::ifstream file(GameData::programmPath + OUT_BINARY_FILE, std::ios::binary);
     if (file.is_open())
     {
         // Bird
@@ -506,7 +506,7 @@ void deserialize()
 void serialize()
 {
     std::cout << "Serialization start" << std::endl;
-    std::ofstream file(OUT_BINARY_FILE, std::ios::binary);
+    std::ofstream file(GameData::programmPath + OUT_BINARY_FILE, std::ios::binary);
     if (file.is_open())
     {
         // Bird
