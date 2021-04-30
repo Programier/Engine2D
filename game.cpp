@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <iostream>
 
 #define GROUND_SPEED 3.5
 #define BIRD_X 250
@@ -10,10 +11,12 @@
 #define GROUND_POS_Y 86
 #define JUMP 7
 #define DIGIT_SIZE 32
-#define COLUMN_DISTANCE_Y 135
+#define COLUMN_DISTANCE_Y 140
 #define COLUMN_DISTANCE_X 250
 #define COLUMN_DIFF_Y 250
 #define MAX_FALLING_SPEED -15
+#define MIN_WINDOW_WIDTH 400
+#define MIN_WINDOW_HEIGHT 200
 
 namespace GameData
 {
@@ -52,12 +55,12 @@ namespace GameData
     } Column;
 
     std::vector<Column> columns;
-    bool pause = false, gameOver = false, change_column = false,
-         gameOverAudioIsReproduced = false;
+    bool pause = false, gameOver = true, change_column = false,
+         gameOverAudioIsReproduced = true;
     double sky_x = 0, ground_x, diff = 1;
     int background_width, background_frame_count, ground_pos = GROUND_POS_Y,
                                                   column_width, column_height, colums_count;
-    unsigned int score = 0;
+    unsigned int score = 0, max_score = 0;
     Texture _column;
 
     // Programm Variables
@@ -66,6 +69,11 @@ namespace GameData
     int FPS = 60, tmp_FPS = FPS;
     Texture fps_texture;
     bool show_fps = true;
+    struct
+    {
+        Texture txr;
+        Button button;
+    } continueButton, play, quit;
 
     void loadResources()
     {
@@ -91,6 +99,12 @@ namespace GameData
         loadWAV(programmPath + "audio/sfx_hit.wav", audio.hit);
         loadWAV(programmPath + "audio/sfx_point.wav", audio.point);
         loadTexture(programmPath + "images/column.png", _column);
+        loadTexture(programmPath + "images/continue.png", continueButton.txr);
+        createButton(continueButton.button, continueButton.txr, continueButton.txr, continueButton.txr);
+        loadTexture(programmPath + "images/play.png", play.txr);
+        createButton(play.button, play.txr, play.txr, play.txr);
+        loadTexture(programmPath + "images/quit.png", quit.txr);
+        createButton(quit.button, quit.txr, quit.txr, quit.txr);
     }
 
     void deleteResources()
@@ -107,7 +121,18 @@ namespace GameData
         deleteTexture(_column);
     }
 
-    void updateBird()
+    void resetData()
+    {
+        score = 0;
+        pause = false;
+        gameOver = false;
+        gameOverAudioIsReproduced = false;
+        bird.y = 350, bird.x = BIRD_X, bird.speed_y = 0;
+        bird.frame = 0;
+        bird.angle = 0, bird.prev_angle = 0;
+        columns.clear();
+    }
+    bool updateBird()
     {
         if (bird.y > GROUND_POS_Y * diff)
         {
@@ -127,10 +152,15 @@ namespace GameData
             {
                 bird.angle *= -1.0;
             }
+            return true;
         }
+        return false;
     }
-
-    void updateInfo()
+    void updateDiff()
+    {
+        diff = static_cast<double>(Window::height) / window_initial_height;
+    }
+    void updateInfo(bool blockInput = false)
     {
 
         auto getMinLimit = [](int index) -> int {
@@ -147,18 +177,11 @@ namespace GameData
             return max;
         };
 
-        if (Event::Keyboard::jpressed(GLFW_KEY_P))
+        if (Event::Keyboard::jpressed(GLFW_KEY_P) && !blockInput)
         {
-            if (pause)
-            {
-                bird.speed_y = 0;
-                gameOverAudioIsReproduced = false;
-                gameOver = false;
-            }
             pause = !pause;
         }
-
-        diff = static_cast<double>(Window::height) / window_initial_height;
+        updateDiff();
         column_height = _column.height * diff;
         column_width = _column.width * diff;
         if (!pause)
@@ -188,7 +211,7 @@ namespace GameData
                 bird.speed_y = 0;
             }
 
-            if (Event::Keyboard::jpressed(GLFW_KEY_SPACE))
+            if (Event::Keyboard::jpressed(GLFW_KEY_SPACE) && !blockInput)
             {
                 bird.speed_y = JUMP * diff;
                 Speaker::play(audio.wings);
@@ -201,7 +224,6 @@ namespace GameData
                                   bird.size_y / 2))
                 {
                     score++;
-                    change_column = true;
                     Speaker::play(audio.point);
                 }
 
@@ -213,6 +235,12 @@ namespace GameData
                         pause = true;
                         gameOver = true;
                     }
+
+                if (!change_column && columns[0].x + column_width < bird.x)
+                {
+                    change_column = true;
+                    std::cout << "GAME: Column index for collision detection changed" << std::endl;
+                }
             }
         }
 
@@ -276,6 +304,9 @@ namespace GameData
             if (score > 0)
                 Speaker::play(audio.die);
         }
+
+        if (score > max_score)
+            max_score = score;
     }
 }
 
@@ -336,23 +367,24 @@ void drawFrame()
     }
 }
 
-void menu()
+void startTimer()
 {
+    auto begin = std::chrono::steady_clock::now();
+    int time;
+    while ((time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count()) < 3000 && Window::isOpen())
+    {
+        Event::pollEvents();
+        Window::clearBuffer();
+        drawFrame();
+        GameData::updateDiff();
+        draw(GameData::digits.digits[3 - static_cast<int>(time / 1000)], Window::width / 2 - DIGIT_SIZE * GameData::diff, Window::height / 2, 0, DIGIT_SIZE * 2 * GameData::diff, DIGIT_SIZE * 2 * GameData::diff);
+        Window::swapBuffers();
+    }
 }
 
-int start_game(char *argv)
+void play()
 {
-    srand(time(NULL));
-    GameData::programmPath = getProgrammPath(argv);
-    loadEngine(GameData::programmPath + "lib/");
-    Window::init(1280, 720, "FlappyBird", true);
-    Event::init();
-    Texture_Renderer::init();
-    Speaker::init();
-
-    /* Loading Data from external files */
-    GameData::loadResources();
-
+    startTimer();
     auto begin = std::chrono::steady_clock::now(),
          fps_updater = std::chrono::steady_clock::now();
     while (Window::isOpen() && !GameData::gameOver)
@@ -362,7 +394,6 @@ int start_game(char *argv)
         Window::clearBuffer();
         GameData::updateInfo();
         drawFrame();
-
         Window::swapBuffers();
         auto elapsed_mcs = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin);
         GameData::FPS = 1000000 / elapsed_mcs.count();
@@ -371,18 +402,84 @@ int start_game(char *argv)
             fps_updater = std::chrono::steady_clock::now();
             GameData::tmp_FPS = GameData::FPS;
         }
+        if (GameData::pause && !GameData::gameOver)
+            return;
     }
 
     // Game Already is over
     // Show bird animation
+    while (Window::isOpen() && GameData::updateBird())
+    {
+        Event::pollEvents();
+        Window::clearBuffer();
+        drawFrame();
+        Window::swapBuffers();
+    }
+}
+
+void deserialize()
+{
+}
+void serialize()
+{
+}
+
+int start_game(char *argv)
+{
+    srand(time(NULL));
+    Window::init(1280, 720, "FlappyBird", true, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
+    Event::init();
+    Texture_Renderer::init();
+    Speaker::init();
+
+    /* Loading Data from external files */
+    GameData::loadResources();
+    deserialize();
+    GameData::updateInfo(true);
     while (Window::isOpen())
     {
         Event::pollEvents();
         Window::clearBuffer();
-        GameData::updateBird();
+        GameData::updateDiff();
+
+        GameData::continueButton.button.x = Window::width / 2 - GameData::continueButton.txr.width * GameData::diff / 2;
+        GameData::continueButton.button.y = Window::height / 2 + 5 * GameData::diff + GameData::continueButton.txr.height / 2;
+        GameData::continueButton.button.width = GameData::continueButton.txr.width * GameData::diff;
+        GameData::continueButton.button.height = GameData::continueButton.txr.height * GameData::diff;
+        GameData::continueButton.button.visible = !GameData::gameOver;
+
+        GameData::play.button.x = Window::width / 2 - GameData::play.txr.width * GameData::diff / 2;
+        GameData::play.button.y = GameData::continueButton.button.y - 5 * GameData::diff - GameData::play.txr.height * GameData::diff;
+        GameData::play.button.width = GameData::play.txr.width * GameData::diff;
+        GameData::play.button.height = GameData::play.txr.height * GameData::diff;
+
+        GameData::quit.button.x = Window::width / 2 - GameData::continueButton.txr.width * GameData::diff / 2;
+        GameData::quit.button.y = GameData::play.button.y - 5 * GameData::diff - GameData::quit.txr.height * GameData::diff;
+        GameData::quit.button.width = GameData::quit.txr.width * GameData::diff;
+        GameData::quit.button.height = GameData::quit.txr.height * GameData::diff;
+
         drawFrame();
+        draw(GameData::play.button);
+        draw(GameData::continueButton.button);
+        draw(GameData::quit.button);
+        if (buttonClicked(GameData::play.button))
+        {
+            GameData::resetData();
+            GameData::updateInfo(true);
+            play();
+        }
+        else if (buttonClicked(GameData::continueButton.button))
+        {
+            GameData::pause = false;
+            play();
+        }
+        else if (buttonClicked(GameData::quit.button))
+        {
+            Window::setShouldClose(true);
+        }
         Window::swapBuffers();
     }
+    serialize();
     Window::terminate();
     Event::terminate();
     Texture_Renderer::terminate();
@@ -394,5 +491,8 @@ int start_game(char *argv)
 
 int main(int argc, char **argv)
 {
+    GameData::programmPath = getProgrammPath(argv[0]);
+    if (loadEngine(GameData::programmPath + "lib/") == -1)
+        return EXIT_FAILURE;
     return start_game(argv[0]);
 }
