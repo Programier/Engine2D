@@ -2,7 +2,7 @@ compile() {
     FOLDER=$1
     LIBNAME=$2
     cd $FOLDER
-    g++ -fPIC -c *.cpp -lglfw -lpng -lGL -lGLEW -lalut -lopenal -laudio
+    g++ -Wall -fPIC -c *.cpp -lglfw -lpng -lGL -lGLEW -lalut -lopenal -laudio
     g++ -shared -o $LIBNAME *.o -lglfw -lpng -lGL -lGLEW -lalut -lopenal -laudio
     rm -rf *.o
     mv $LIBNAME ../lib

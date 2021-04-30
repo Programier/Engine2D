@@ -11,7 +11,7 @@
 
 extern "C"
 {
-	static bool inited = false, changeSize = false;
+	static bool inited = false;
 	bool keys[1024];
 	unsigned int frames[1024];
 	unsigned int current;

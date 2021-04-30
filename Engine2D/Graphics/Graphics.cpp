@@ -14,6 +14,6 @@ extern "C"
         Graphics::_Event::getX = MouseGetX;
         Graphics::_Event::getY = MouseGetY;
         Graphics::_Event::pressed = MousePressed;
-        printf("GRAPHICS: %p\t%p\t%p\n", EventIsInited, MouseGetX, MouseGetY, MousePressed);
+        printf("GRAPHICS: %p\t%p\t%p\t%p\n", EventIsInited, MouseGetX, MouseGetY, MousePressed);
     }
 }

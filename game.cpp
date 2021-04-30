@@ -538,7 +538,7 @@ void serialize()
         // Column positions
         int size = static_cast<int>(GameData::columns.size());
         _write(file, &size);
-        for (int i = 0; i < GameData::columns.size(); i++)
+        for (int i = 0; i < size; i++)
         {
             _write(file, &GameData::columns[i].x);
             _write(file, &GameData::columns[i].y_lower);

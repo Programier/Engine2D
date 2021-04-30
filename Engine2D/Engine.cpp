@@ -65,7 +65,7 @@ int loadLib(std::string libpath, std::vector<std::string> &func_name)
         return -1;
     }
     std::cout << "Engine Loader: Library loaded successfully.\nEngine Loader: Loading functions from this library" << std::endl;
-    for (int i = 0; i < func_name.size(); i++)
+    for (std::size_t i = 0; i < func_name.size(); i++)
     {
         _functions[func_index].func.push_back(getSymLink(_functions[func_index].lib, func_name[i].c_str()));
         if (_functions[func_index].func[i] == nullptr)

@@ -12,7 +12,7 @@ cd Engine2D
 ./compileEngine.sh
 cd ../
 echo "Compiling the game"
-g++ game.cpp Engine2D/*.cpp -o $NAME -lglfw -lpng -lGL -lGLEW -lalut -lopenal -laudio -ldl
+g++ -Wall game.cpp Engine2D/*.cpp -o $NAME -lglfw -lpng -lGL -lGLEW -lalut -lopenal -laudio -ldl
 rm -rf lib
 mv Engine2D/lib ./Release
 mv $NAME ./Release
