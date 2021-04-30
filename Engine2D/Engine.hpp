@@ -15,7 +15,7 @@ namespace Window
     extern GLFWwindow *window;
     extern int width, height;
     int init(int window_width, int window_height,
-             const char *windowname, bool rezisable);
+             const char *windowname = "", bool rezisable = true, int min_width = 0, int min_height = 0, int max_width = GLFW_DONT_CARE, int max_height = GLFW_DONT_CARE);
     void terminate();
 
     bool isOpen();

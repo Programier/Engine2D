@@ -140,11 +140,13 @@ int loadEngine(const std::string enginePath)
 }
 
 // Implementing function calls from the Window.lib library
-int Window::init(int window_width, int window_height, const char *windowname, bool rezisable)
+int Window::init(int window_width, int window_height,
+                 const char *windowname, bool rezisable, int min_width, int min_height, int max_width, int max_height)
 {
     if (_functions[0].inited)
     {
-        if (((int (*)(int, int, const char *, bool))(_functions[0].func[0]))(window_width, window_height, windowname, rezisable) == -1)
+        if (((int (*)(int, int, const char *, bool, int, int, int, int))(_functions[0].func[0]))(window_width, window_height, windowname,
+                                                                                                 rezisable, min_width, min_height, max_width, max_height) == -1)
             return -1;
 
         Window::window = *(GLFWwindow **)getSymLink(_functions[0].lib, "_window");

@@ -19,7 +19,7 @@ extern "C"
         int width, height;
 
         int init(int window_width, int window_height,
-                 const char *windowname, bool rezisable)
+                 const char *windowname, bool rezisable, int min_width, int min_height, int max_width, int max_height)
         {
             width = window_width;
             height = window_height;
@@ -43,7 +43,7 @@ extern "C"
                 std::cerr << "WINDOW: Fаiled to initialize new window\n";
                 return -1;
             }
-
+            glfwSetWindowSizeLimits(_window, min_width, min_height, max_width, max_height);
             glViewport(0, 0, width, height);
             std::cout << "WINDOW: The window was created successfully" << std::endl;
             inited = true;

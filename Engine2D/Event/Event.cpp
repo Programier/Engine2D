@@ -11,7 +11,7 @@
 
 extern "C"
 {
-	static bool inited = false;
+	static bool inited = false, changeSize = false;
 	bool keys[1024];
 	unsigned int frames[1024];
 	unsigned int current;
@@ -48,7 +48,6 @@ extern "C"
 
 	void mouse_callback(GLFWwindow *window, int button, int action, int none)
 	{
-
 		mouse_buttons[button] = (action == GLFW_PRESS);
 		mouse_frames[button] = current;
 	}
