@@ -24,3 +24,9 @@ chmod +x Engine2D/compileEngine.sh
 ```
 ### Using File Manager
 1. Open source_directory/Release folder in file manager and run binary file FlappyBird
+
+## Run game in Repl.it
+### You can also run this project on the repl.it service. To do this, follow the link:
+```
+https://replit.com/join/qfnewnoh-vladreminskyj
+```
