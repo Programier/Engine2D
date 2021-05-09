@@ -7,14 +7,12 @@
 3. Installing the required packages (Debian based operating system)
 ```
 sudo apt update
-sudo apt install libglfw3-dev libpng-dev libglew-dev libalut-dev libopenal-dev libaudio-dev libglm-dev
+sudo apt install libglfw3-dev libpng-dev libglew-dev libalut-dev libopenal-dev libaudio-dev libglm-dev make
 ```
 4. Compile source
 ```
 cd source_directory
-chmod +x compile.sh
-chmod +x Engine2D/compileEngine.sh
-./compile.sh
+make
 ```
 ## Run game
 ### Using terminal
