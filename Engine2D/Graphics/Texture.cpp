@@ -46,13 +46,18 @@ extern "C"
 
 	void deleteTexture(struct _Texture &texture)
 	{
+		if(texture.privateData == nullptr)
+			return;
 		if (!texture.privateData->inherit)
 		{
 			std::cout << "TEXTURE: Start deleting texture" << std::endl;
-			glDeleteTextures(1, &texture.id);
-			delete texture.privateData;
+			if(texture.id != 0)
+				glDeleteTextures(1, &texture.id);
 			if (texture.privateData != nullptr)
+			{
+				delete texture.privateData;
 				texture.privateData = nullptr;
+			}
 		}
 		else
 			std::cerr << "TEXTURE: Can't delete inherited texture. Permission denied!" << std::endl;
