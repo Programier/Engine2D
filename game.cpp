@@ -329,39 +329,43 @@ namespace GameData
     {
         if (!columns.empty())
         {
-            if ((bird.x >= columns[change_column].x + column_width - bird.size_y / 2) &&
-                (bird.x < GROUND_SPEED + columns[change_column].x + column_width -
-                              bird.size_y / 2))
+            if (!gameOver)
             {
-                score++;
-                Speaker::play(audio.point);
-            }
+                if ((bird.x >= columns[change_column].x + column_width - bird.size_y / 2) &&
+                    (bird.x < GROUND_SPEED + columns[change_column].x + column_width -
+                                  bird.size_y / 2))
+                {
 
-            // Check collisions
-            if (bird.y < columns[change_column].y_lower + WINDOW_INITIAL_HEIGHT || bird.y + bird.size_y > columns[change_column].y_upper)
-                if (bird.x + bird.size_x - 3 >= columns[change_column].x &&
-                    bird.x - 5 <= columns[change_column].x + column_width)
+                    score++;
+                    Speaker::play(audio.point);
+                }
+
+                // Check collisions
+                if (bird.y < columns[change_column].y_lower + WINDOW_INITIAL_HEIGHT || bird.y + bird.size_y > columns[change_column].y_upper)
+                    if (bird.x + bird.size_x - 3 >= columns[change_column].x &&
+                        bird.x - 5 <= columns[change_column].x + column_width)
+                    {
+                        gameOver = true;
+                    }
+
+                if (bird.y <= GROUND_POS_Y + 10)
                 {
                     gameOver = true;
                 }
+                if (!change_column && columns[0].x + column_width < bird.x)
+                {
+                    change_column = true;
+                    gameStarted = true;
+                    std::cout << "GAME: Column index for collision detection changed" << std::endl;
+                }
 
-            if (bird.y <= GROUND_POS_Y + 10)
-            {
-                gameOver = true;
-            }
-            if (!change_column && columns[0].x + column_width < bird.x)
-            {
-                change_column = true;
-                gameStarted = true;
-                std::cout << "GAME: Column index for collision detection changed" << std::endl;
-            }
-
-            if (gameOver && !gameOverAudioIsReproduced)
-            {
-                gameOverAudioIsReproduced = true;
-                Speaker::play(audio.hit);
-                if (score > 0)
-                    Speaker::play(audio.die);
+                if (gameOver && !gameOverAudioIsReproduced)
+                {
+                    gameOverAudioIsReproduced = true;
+                    Speaker::play(audio.hit);
+                    if (score > 0)
+                        Speaker::play(audio.die);
+                }
             }
 
             if (score > max_score)
@@ -710,6 +714,7 @@ void start()
 
 int main(int argc, char **argv)
 {
+    srand(time(NULL));
     GameData::path = getProgrammPath(argv[0]);
     if (loadEngine(GameData::path + "lib/") == -1)
         return EXIT_FAILURE;
