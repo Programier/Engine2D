@@ -26,5 +26,5 @@ make
 ## Run game in Repl.it
 ### You can also run this project on the repl.it service. To do this, follow the link:
 ```
-https://replit.com/join/qfnewnoh-vladreminskyj
+https://replit.com/join/eyuqonog-vladreminskyj
 ```
